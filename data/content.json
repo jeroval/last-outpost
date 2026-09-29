@@ -1,0 +1,31 @@
+{
+  "items": [
+    {"id": "scrap", "name": "Ferraille", "weight": 1},
+    {"id": "wire", "name": "Câble", "weight": 1},
+    {"id": "wood", "name": "Bois", "weight": 1},
+    {"id": "fuel", "name": "Carburant", "weight": 2},
+    {"id": "food", "name": "Nourriture", "weight": 1},
+    {"id": "water", "name": "Eau", "weight": 1}
+  ],
+  "recipes": {
+    "generator": {"name": "Réparer le générateur", "inputs": {"scrap": 3, "wire": 1}},
+    "shelf": {"name": "Installer une étagère", "inputs": {"wood": 3, "scrap": 1}},
+    "barricade": {"name": "Construire une barricade", "inputs": {"wood": 2, "scrap": 1}},
+    "collector": {"name": "Installer un récupérateur d'eau", "inputs": {"scrap": 2, "wood": 2, "wire": 1}, "requires": ["shelf"], "description": "1 eau par jour sec, 3 sous la pluie, 4 sous l'orage."},
+    "garden": {"name": "Planter un potager", "inputs": {"wood": 3, "scrap": 1}, "requires": ["collector"], "description": "Transforme 1 eau du stock en 2 nourritures chaque jour."},
+    "market": {"name": "Ouvrir un comptoir", "inputs": {"wood": 2, "scrap": 1, "wire": 1}, "requires": ["shelf"], "description": "Un marchand revient tous les deux jours. Échangez vos excédents contre des matériaux et du carburant."}
+  },
+  "trade_offers": {
+    "fuel": {"name": "Carburant", "give": {"food": 4}, "receive": {"fuel": 1}, "limit": 2},
+    "scrap": {"name": "Ferraille", "give": {"water": 4}, "receive": {"scrap": 2}, "limit": 2},
+    "wire": {"name": "Câble", "give": {"food": 3}, "receive": {"wire": 1}, "limit": 2},
+    "wood": {"name": "Bois", "give": {"water": 3}, "receive": {"wood": 2}, "limit": 2}
+  },
+  "sites": [
+    {"id": "garage", "name": "Garage voisin", "kind": "garage", "position": [18, -14], "loot": [{"item": "scrap", "min": 6, "max": 8}, {"item": "wire", "min": 3, "max": 4}]},
+    {"id": "warehouse", "name": "Entrepôt", "kind": "warehouse", "position": [-18, -16], "loot": [{"item": "scrap", "min": 5, "max": 7}, {"item": "wood", "min": 7, "max": 9}]},
+    {"id": "pump", "name": "Cuve abandonnée", "kind": "pump", "position": [6, 5], "loot": [{"item": "fuel", "min": 3, "max": 4}]},
+    {"id": "house", "name": "Maison", "kind": "house", "position": [-18, 17], "loot": [{"item": "food", "min": 4, "max": 5}, {"item": "water", "min": 4, "max": 5}]},
+    {"id": "grove", "name": "Bosquet", "kind": "grove", "position": [18, 18], "loot": [{"item": "wood", "min": 8, "max": 10}]}
+  ]
+}

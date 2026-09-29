@@ -1,0 +1,37 @@
+name: Validate Godot project
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Download verified Godot 4.7.2 editor
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $uri = 'https://downloads.godotengine.org/?flavor=stable&platform=windows.64&slug=win64.exe.zip&version=4.7.2'
+          $archive = Join-Path $env:RUNNER_TEMP 'godot-4.7.2-win64.zip'
+          & curl.exe --fail --location --silent --show-error --output $archive $uri
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $archive).Hash
+          $expected = '731980F9608D61333E5BAF54A2EF17210ACC7A538446C0CB9969F002ACA1E953'
+          if ($actual -ne $expected) { throw 'Godot archive checksum mismatch' }
+          Expand-Archive -LiteralPath $archive -DestinationPath (Join-Path $env:RUNNER_TEMP 'godot')
+
+      - name: Import and playtest
+        shell: powershell
+        run: |
+          $engine = Join-Path $env:RUNNER_TEMP 'godot/Godot_v4.7.2-stable_win64_console.exe'
+          & .\scripts\validate.ps1 -GodotPath $engine
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

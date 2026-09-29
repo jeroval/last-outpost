@@ -1,0 +1,383 @@
+{
+  "schema_version": 1,
+  "updated": "2026-09-29",
+  "issues": [
+    {
+      "id": "LO-001",
+      "title": "Les consommables déposés deviennent inaccessibles",
+      "severity": "high",
+      "status": "verified",
+      "reproduction": [
+        "Récupérer eau ou nourriture.",
+        "Déposer le sac dans le stock.",
+        "Tenter de consommer avec le sac vide."
+      ],
+      "expected": "Le joueur peut récupérer ou utiliser ses réserves depuis une action compréhensible à la base.",
+      "actual": "La version initiale de consume() ne lit que pack ; aucune action de retrait n'est disponible.",
+      "fix": "withdraw(item_id, amount) permet stock → sac selon quantité disponible et capacité ; consume() utilise ensuite le sac. Les boutons de retrait et consommation sont vérifiés en intégration par leurs signaux pressed.",
+      "evidence": [
+        {
+          "date": "2026-09-29",
+          "command": "Lecture de deposit(), consume() et des interactions disponibles avant correction",
+          "result": "Défaut établi dans la logique initiale, sans exécution isolée de l'ancien code.",
+          "refs": [
+            "game/core/station_state.gd",
+            "game/station_game.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tests/progression_smoke.gd",
+          "result": "Code 0, PROGRESSION OK, sans SCRIPT ERROR. Dépôt de 2 eau/2 nourriture, retrait et consommation de 1 : soif 20→55, faim 20→50, reste 1 de chaque au stock. Sac plein, retrait partiel et quantités invalides testés. Portée : règles, pas boutons UI.",
+          "verdict": "pass",
+          "refs": [
+            "tests/progression_smoke.gd",
+            "game/core/station_state.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tests/ux_smoke.gd",
+          "result": "Code 0, UX OK (56 contrôles). E au stock → atelier → boutons sac/retrait eau/retrait nourriture/manger/boire ; besoins et quantités conservés, HUD actualisé, consommation désactivée si sac vide. Portée : signaux pressed, pas clic physique souris.",
+          "verdict": "pass",
+          "refs": [
+            "tests/ux_smoke.gd",
+            "game/station_game.gd"
+          ]
+        }
+      ],
+      "updated": "2026-09-29"
+    },
+    {
+      "id": "LO-002",
+      "title": "Absence d'accueil et de navigation pour apprendre et reprendre le jeu",
+      "severity": "high",
+      "status": "verified",
+      "reproduction": [
+        "Lancer la scène station.",
+        "Chercher une commande visible pour commencer, consulter l'aide, mettre en pause ou reprendre sa sauvegarde."
+      ],
+      "expected": "Un parcours d'accueil et de pause rend les actions essentielles accessibles au clavier et à la souris.",
+      "actual": "La version initiale affiche immédiatement la scène et exige de connaître des raccourcis.",
+      "fix": "Accueil avec Continuer, modes Découverte/Survie et aide ; guide initial, pause, options, sac et carte. Les menus bloquent les actions du monde et rendent les commandes en se fermant.",
+      "evidence": [
+        {
+          "date": "2026-09-29",
+          "command": "Revue de l'interface de la scène principale avant correction",
+          "result": "Écart UX identifié dans la version sans parcours d'accueil.",
+          "refs": [
+            "game/station_game.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "scripts/validate.ps1 puis tests/web_smoke.py --steps tests/web_journey.json sur archive finale extraite",
+          "result": "Validation commune code 0 dont UX OK (62 contrôles). Parcours Chrome réel observé : accueil, nouvelle partie, guide, déplacement, carte, nuit, sac, reload et Continuer. Menus/rendu natif inspectés ; aucune mesure d'accessibilité avec des joueurs effectuée.",
+          "verdict": "pass",
+          "refs": [
+            "tests/ux_smoke.gd",
+            "tests/web_smoke.py",
+            "tests/web_journey.json",
+            "game/ui/station_hud.gd"
+          ]
+        }
+      ],
+      "updated": "2026-09-29"
+    },
+    {
+      "id": "LO-003",
+      "title": "Le démarrage demande de retrouver un export ou une commande Web",
+      "severity": "medium",
+      "status": "verified",
+      "reproduction": [
+        "Ouvrir la racine du projet après téléchargement.",
+        "Chercher une action unique pour lancer le jeu Windows ou navigateur."
+      ],
+      "expected": "Un lanceur visible ouvre le jeu et explique un prérequis manquant sans terminal manuel.",
+      "actual": "La procédure initiale renvoie au fichier dans build ou à une commande de serveur local.",
+      "fix": "Jouer.cmd ouvre un lanceur Windows avec choix natif/navigateur, aide et sauvegardes. Serveur Web embarqué sur 127.0.0.1:18747. L'archive complète contient les deux exports et le lanceur ; extraire puis ouvrir LastOutpostLauncher.exe.",
+      "evidence": [
+        {
+          "date": "2026-09-29",
+          "command": "Revue du parcours de démarrage décrit dans README",
+          "result": "Étapes techniques requises observées dans la documentation initiale.",
+          "refs": [
+            "README.md"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "powershell -NoProfile -File tests/launcher.ps1",
+          "result": "Rapport local relu : détection exports, GET/HEAD/WASM, chemins avec espaces, refus de traversal et hôte externe, port libéré et origine fixe passent.",
+          "verdict": "pass",
+          "refs": [
+            "tests/launcher.ps1",
+            "tools/launcher/Launcher.cs",
+            "tools/launcher/README.md"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "scripts/build-launcher.ps1 -Package, extraction hors dépôt puis essais natif et tests/web_smoke.py avec le lanceur extrait",
+          "result": "Dernière archive reconstruite depuis les deux exports à jour. Exécutable natif extrait code 0 sans stderr et hash égal au build ; lanceur/rendu inspectés. Chrome charge le jeu depuis le serveur intégré, reprend la sauvegarde et le serveur s'arrête à la fin de l'essai.",
+          "verdict": "pass",
+          "refs": [
+            "scripts/build-launcher.ps1",
+            "tests/web_smoke.py",
+            "tools/launcher/Launcher.cs"
+          ]
+        }
+      ],
+      "updated": "2026-09-29"
+    },
+    {
+      "id": "LO-004",
+      "title": "La caméra peut traverser les bâtiments",
+      "severity": "medium",
+      "status": "verified",
+      "reproduction": [
+        "Approcher un bâtiment.",
+        "Orienter la caméra de manière à placer un mur entre elle et le joueur."
+      ],
+      "expected": "La caméra se rapproche du joueur lorsqu'un obstacle bloque la vue.",
+      "actual": "La caméra initiale ne traite pas les collisions de son trajet ; défaut signalé lors de la revue du contrôleur.",
+      "fix": "Un rayon physique entre le joueur et la caméra replace celle-ci devant l'obstacle. Vérifié sur une fixture physique ; inspection finale du nouvel export encore distincte.",
+      "evidence": [
+        {
+          "date": "2026-09-29",
+          "command": "Revue du contrôleur et signalement par le développement UI",
+          "result": "Défaut identifié avant correction.",
+          "refs": [
+            "game/player/third_person_controller.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "powershell -NoProfile -File scripts/validate.ps1",
+          "result": "Code 0, UX OK (40 contrôles). La fixture intercepte réellement le rayon et la caméra se rapproche devant l'obstacle. Validation finale exécutée par l'agent principal après modifications monde/UI.",
+          "verdict": "pass",
+          "refs": [
+            "tests/ux_smoke.gd",
+            "game/player/third_person_controller.gd",
+            "scripts/validate.ps1"
+          ]
+        }
+      ],
+      "updated": "2026-09-29"
+    },
+    {
+      "id": "LO-005",
+      "title": "Le joueur peut quitter le sol et tomber hors de la carte",
+      "severity": "high",
+      "status": "verified",
+      "reproduction": [
+        "Se déplacer au-delà du bord du terrain.",
+        "Observer la position et la possibilité de continuer la partie."
+      ],
+      "expected": "Le joueur reste dans la zone jouable ou est replacé sans perdre sa progression.",
+      "actual": "Le contrôleur initial ne pose pas de limite ni de récupération de chute ; défaut signalé lors de sa revue.",
+      "fix": "Déplacement borné à ±40 sur x/z ; récupération à la station si la hauteur descend sous -3. Les bornes sont vérifiées automatiquement ; inspection finale du terrain distincte.",
+      "evidence": [
+        {
+          "date": "2026-09-29",
+          "command": "Revue du contrôleur et signalement par le développement UI",
+          "result": "Défaut identifié avant correction.",
+          "refs": [
+            "game/player/third_person_controller.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "powershell -NoProfile -File scripts/validate.ps1",
+          "result": "Code 0, UX OK (40 contrôles), test de position hors limites ramenée dans le monde. La clause de récupération de hauteur est présente dans le contrôleur ; son cas de chute n'est pas une assertion distincte du test.",
+          "verdict": "pass",
+          "refs": [
+            "tests/ux_smoke.gd",
+            "game/player/third_person_controller.gd",
+            "scripts/validate.ps1"
+          ]
+        }
+      ],
+      "updated": "2026-09-29"
+    },
+    {
+      "id": "LO-006",
+      "title": "Le guidage ignore les ressources transportées et pointe des étapes inaccessibles",
+      "severity": "high",
+      "status": "verified",
+      "reproduction": [
+        "Fouiller les matériaux utiles sans encore les déposer.",
+        "Consulter l'objectif suivant.",
+        "Vérifier aussi l'objectif d'amélioration avec un stock vide et la cible après restauration."
+      ],
+      "expected": "Le repère mène au dépôt si le sac contient les matériaux, à un site utile s'ils manquent, puis à une cible existante après restauration.",
+      "actual": "Le guidage pouvait renvoyer vers un lieu vidé, vers le stock sans ressources, ou vers une cible market absente du monde.",
+      "fix": "_construction_objective() soustrait matériaux du sac et du stock, puis choisit un lieu contenant le butin encore manquant. Les matériaux transportés déclenchent le dépôt et la cible finale est trader. La cible et le texte du HUD sont aussi vérifiés après fouille en intégration.",
+      "evidence": [
+        {
+          "date": "2026-09-29",
+          "command": "godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tests/progression_smoke.gd, avant correction du guidage",
+          "result": "Code 1, six assertions de _test_guidance échouent sur l'ancien guidage. Échec rapporté par le développement progression et conservé.",
+          "verdict": "fail",
+          "refs": [
+            "tests/progression_smoke.gd",
+            "game/core/station_state.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tests/progression_smoke.gd, après correction",
+          "result": "Code 0, PROGRESSION OK, sans SCRIPT ERROR. Entrepôt→dépôt→atelier et garage→dépôt→générateur ; améliorations vers ressource manquante puis dépôt ; cible finale trader. Portée de ce contrôle : règles.",
+          "verdict": "pass",
+          "refs": [
+            "tests/progression_smoke.gd",
+            "game/core/station_state.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tests/ux_smoke.gd",
+          "result": "Code 0, UX OK (56 contrôles). E à l'entrepôt fait ensuite afficher Stock & atelier et Déposez votre sac dans le HUD. Attente de deux process frames pour observer le rafraîchissement ; l'assertion initiale à une seule frame était prématurée, sans correction du jeu pour la satisfaire.",
+          "verdict": "pass",
+          "refs": [
+            "tests/ux_smoke.gd",
+            "game/station_game.gd"
+          ]
+        }
+      ],
+      "updated": "2026-09-29"
+    },
+    {
+      "id": "LO-007",
+      "title": "Le compte rendu d'une nuit sans production ne décrit pas ses conséquences",
+      "severity": "medium",
+      "status": "verified",
+      "reproduction": [
+        "Commencer une partie sans production installée.",
+        "Passer la nuit.",
+        "Lire le compte rendu au matin."
+      ],
+      "expected": "Le compte rendu indique la consommation des besoins et si une intrusion a eu lieu, même sans production.",
+      "actual": "La capture Web 07-morning montre seulement « Jour 2 · Orage : » sans résumé d'effets.",
+      "fix": "advance_day() annonce systématiquement faim/soif et absence d'intrusion lorsque pertinente. Le compte rendu du nouvel export a été inspecté et est lisible.",
+      "evidence": [
+        {
+          "date": "2026-09-29",
+          "command": "Essai Chrome réel sur l'archive extraite hors dépôt, protocole tests/web_smoke.py, avant correction",
+          "result": "Le rapport Web est passé sans erreur et la sauvegarde jour 2 a été reprise, mais l'inspection de la capture 07-morning a révélé ce défaut de feedback. La réussite technique du script ne clôt pas ce défaut visuel.",
+          "verdict": "observed",
+          "refs": [
+            "tests/web_smoke.py",
+            "game/core/station_state.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "Nouvel export puis inspection directe de la capture Web 07-morning",
+          "result": "L'agent principal confirme le résumé faim/soif et l'absence d'intrusion affichés dans le compte rendu. Un autre défaut de persistance a été constaté séparément et enregistré LO-009.",
+          "verdict": "pass",
+          "refs": [
+            "tests/web_smoke.py",
+            "game/core/station_state.gd"
+          ]
+        }
+      ],
+      "updated": "2026-09-29"
+    },
+    {
+      "id": "LO-008",
+      "title": "La notice Windows exportée contient des accents corrompus",
+      "severity": "low",
+      "status": "verified",
+      "reproduction": [
+        "Extraire l'archive Windows.",
+        "Lire la notice LISEZ-MOI générée lors de l'export initial."
+      ],
+      "expected": "La notice distribuée est lisible et son encodage ne produit pas de caractères corrompus.",
+      "actual": "Des accents corrompus ont été observés dans la notice de l'archive lors de la revue du lanceur.",
+      "fix": "Le texte généré de la notice utilise désormais des caractères ASCII compatibles avec le chemin d'export Windows.",
+      "evidence": [
+        {
+          "date": "2026-09-29",
+          "command": "Nouvel export Windows puis lecture UTF-8 de la notice distribuée",
+          "result": "L'agent principal a relu la notice après le dernier export et confirmé les caractères lisibles. Portée : notice générée, aucune translittération globale du jeu.",
+          "verdict": "pass",
+          "refs": [
+            "scripts/export-windows.ps1"
+          ]
+        }
+      ],
+      "updated": "2026-09-29"
+    },
+    {
+      "id": "LO-009",
+      "title": "Une sauvegarde Web peut reprendre un état antérieur après rechargement",
+      "severity": "high",
+      "status": "verified",
+      "reproduction": [
+        "Ouvrir le jeu Web et commencer une partie.",
+        "Passer au jour 2, puis sauvegarder avec K.",
+        "Recharger la page et cliquer Continuer.",
+        "Comparer le jour et les besoins à l'état sauvegardé."
+      ],
+      "expected": "La reprise conserve l'état effectivement sauvegardé avant le rechargement : jour 2, faim 71, soif 68 dans ce cas.",
+      "actual": "Un essai montre jour 2 / faim 71 / soif 68 au matin puis jour 1 / faim 80 / soif 80 après reprise, malgré un rapport runtime sans erreur. Un essai précédent avait correctement repris le jour 2.",
+      "fix": "Petit JSON localStorage synchrone avec copie de secours/relecture sur Web ; FileAccess natif conservé, anciennes parties Web en fallback si clé absente. Le service rejette health mal typé et préserve un backup valide face à un primaire corrompu. L'asynchronisme moteur est documenté sans constituer une cause démontrée du retour au jour 1. La reprise est vérifiée sous Chrome à origine constante après reload.",
+      "evidence": [
+        {
+          "date": "2026-09-29",
+          "command": "Premier essai Chrome de l'archive extraite, rapport build/web-release/report.json et inspection 07-morning/10-resumed",
+          "result": "Jour 2 / faim 71 / soif 68 conservés après reload et Continuer lors de cet essai. Résultat positif antérieur conservé, insuffisant face à la régression suivante.",
+          "verdict": "pass",
+          "refs": [
+            "tests/web_smoke.py",
+            "game/save/save_service.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "Essai Chrome suivant, rapport build/web-release-final et inspection directe 07-morning/10-resumed",
+          "result": "Runtime PASS sans erreur mais captures montrant jour 2 / 71 / 68 avant reload, jour 1 / 80 / 80 après Continuer. Défaut de persistance intermittent observé par l'agent principal. Contre-lecture indépendante : la capture 09 place bien Continuer à (320,461), et les actions ferment matin puis sac avec Escape avant K ; aucune preuve d'un clic Nouvelle partie ou K derrière le sac.",
+          "verdict": "fail",
+          "refs": [
+            "tests/web_smoke.py",
+            "game/save/save_service.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script tests/ux_smoke.gd, nouveaux cas de récupération avant correction",
+          "result": "Code 1. health={} ou [] déclenche deux SCRIPT ERROR de conversion float ; après récupération .bak, une nouvelle sauvegarde remplace la copie valide par le primaire corrompu. Ces échecs sont conservés.",
+          "verdict": "fail",
+          "refs": [
+            "tests/ux_smoke.gd",
+            "game/save/save_service.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "powershell -NoProfile -File scripts/validate.ps1 après correction finale",
+          "result": "Code 0, quatre suites passées dont UX OK (62 contrôles), sans erreur moteur. Les mauvais types health et la conservation du backup valide sont maintenant couverts et passent. Trace build/validation-final.log relue.",
+          "verdict": "pass",
+          "refs": [
+            "scripts/validate.ps1",
+            "tests/ux_smoke.gd",
+            "game/save/save_service.gd"
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "command": "tests/web_smoke.py --steps tests/web_journey.json --output build/web-release-save-final, avec le lanceur de la dernière archive extraite hors dépôt",
+          "result": "Code 0. Trois assertions de sauvegarde passent avant reload, après reload et après Continuer : day=2, hunger=71, thirst=68. Rapport relu ; capture 10-resumed inspectée par l'agent principal confirme état et position. Aucune erreur console/réseau ; serveur arrêté. Portée : Chrome local, même origine, rechargement de page ; aucune promesse générale de stockage navigateur.",
+          "verdict": "pass",
+          "refs": [
+            "tests/web_smoke.py",
+            "tests/web_journey.json",
+            "game/save/save_service.gd"
+          ]
+        }
+      ],
+      "updated": "2026-09-29"
+    }
+  ]
+}

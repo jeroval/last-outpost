@@ -1,0 +1,82 @@
+﻿[
+    {
+        "action":  "click",
+        "x":  320,
+        "y":  516,
+        "capture":  "02-welcome"
+    },
+    {
+        "action":  "key",
+        "key":  "Escape",
+        "capture":  "03-world"
+    },
+    {
+        "action":  "hold",
+        "key":  "w",
+        "duration_ms":  800,
+        "capture":  "04-walk"
+    },
+    {
+        "action":  "key",
+        "key":  "m",
+        "capture":  "05-map"
+    },
+    {
+        "action":  "key",
+        "key":  "Escape"
+    },
+    {
+        "action":  "key",
+        "key":  "n",
+        "capture":  "06-night"
+    },
+    {
+        "y":  347,
+        "capture":  "07-morning",
+        "action":  "click",
+        "x":  700
+    },
+    {
+        "key":  "Escape",
+        "action":  "key"
+    },
+    {
+        "key":  "Tab",
+        "action":  "key",
+        "capture":  "08-inventory"
+    },
+    {
+        "key":  "Escape",
+        "action":  "key"
+    },
+    {
+        "wait_ms":  1500,
+        "key":  "k",
+        "action":  "key"
+    },
+    {
+        "action": "assert_save",
+        "label": "before_reload",
+        "expected": {"day": 2, "hunger": 71, "thirst": 68}
+    },
+    {
+        "capture":  "09-saved-menu",
+        "action":  "reload"
+    },
+    {
+        "action": "assert_save",
+        "label": "after_reload",
+        "expected": {"day": 2, "hunger": 71, "thirst": 68}
+    },
+    {
+        "y":  461,
+        "capture":  "10-resumed",
+        "action":  "click",
+        "x":  320
+    },
+    {
+        "action": "assert_save",
+        "label": "after_continue",
+        "expected": {"day": 2, "hunger": 71, "thirst": 68}
+    }
+]

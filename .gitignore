@@ -1,0 +1,5 @@
+# Local Godot editor binaries; the game project remains versioned separately.
+/godot/
+/.godot/
+/build/*
+!/build/.gdignore

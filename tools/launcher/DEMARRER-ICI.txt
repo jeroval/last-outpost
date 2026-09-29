@@ -1,0 +1,15 @@
+LAST OUTPOST
+
+1. Extraire toute l'archive dans un dossier.
+2. Double-cliquer sur LastOutpostLauncher.exe.
+3. Choisir Jouer sur Windows (conseille) ou Jouer dans le navigateur.
+
+Le jeu fonctionne sans compte ni editeur Godot. Il utilise le composant
+.NET Framework fourni avec Windows 10/11 pour son lanceur.
+
+Pour jouer dans le navigateur, garder le lanceur ouvert pendant la partie.
+Le serveur est local au PC et s'arrete quand le lanceur se ferme.
+Les sauvegardes Windows et navigateur sont separees.
+
+Copier le dossier complet pour deplacer le jeu. Conserver les licences
+fournies dans les dossiers windows et web lors d'un partage.
